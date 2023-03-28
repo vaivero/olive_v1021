@@ -1,0 +1,96 @@
+#------------------------------------------------------------------------------
+# written by: mcdaniel
+# date: june-2022
+#
+# usage: top-level workflow. Initiated manually from Github Actions console page
+#        Builds all Docker containers.
+#------------------------------------------------------------------------------
+name: Build openedx container
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      NAMESPACE: prod-usa-prod
+      EKS_CLUSTER_NAME: prod-usa-service
+
+    steps:
+      - uses: actions/checkout@v3.2.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      #------------------------------------------------------------------------
+      # install and configure tutor
+      #------------------------------------------------------------------------
+      - name: Initialize environment
+        uses: openedx-actions/tutor-k8s-init@v1.0.4
+        with:
+          eks-namespace: ${{ env.NAMESPACE }}
+          eks-cluster-name: ${{ env.EKS_CLUSTER_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+          tutor-version: "15.2.0"
+
+      #------------------------------------------------------------------------
+      # Add a custom theme here.
+      #------------------------------------------------------------------------
+      - name: Add a custom theme
+        uses: openedx-actions/tutor-plugin-build-openedx-add-theme@v1.0.0
+        with:
+          repository: edx-theme-example
+          repository-organization: lpm0073
+          repository-ref: main
+          # UN-COMMENT THIS IF YOUR REPO IS PRIVATE.
+          #----------------------------------------------
+          #repository-token: ${{ secrets.PAT }}
+          #----------------------------------------------
+
+      #------------------------------------------------------------------------
+      # Add any Python requirements here.
+      # These include:
+      # - generic Python PyPi packages
+      # - Xblocks
+      # - Open edX Plugin(s)
+      # - your own custom repos
+      #
+      # note that `repository-token` is optional and is only needed for
+      # private repositories
+      #------------------------------------------------------------------------
+      - name: Add an edx plugin
+        uses: openedx-actions/tutor-plugin-build-openedx-add-requirement@v1.0.4
+        with:
+          repository: openedx-plugin-example
+          repository-organization: lpm0073
+          repository-ref: main
+          # UN-COMMENT THIS IF YOUR REPO IS PRIVATE.
+          #----------------------------------------------
+          #repository-token: ${{ secrets.PAT }}
+          #----------------------------------------------
+
+      - name: Add an Xblock
+        uses: openedx-actions/tutor-plugin-build-openedx-add-requirement@v1.0.4
+        with:
+          repository: edx-ora2
+          repository-organization: openedx
+          repository-ref: master
+          # UN-COMMENT THIS IF YOUR REPO IS PRIVATE.
+          #----------------------------------------------
+          #repository-token: ${{ secrets.PAT }}
+          #----------------------------------------------
+
+      - name: Dump tutor config
+        uses: openedx-actions/tutor-print-dump@v1.0.0
+
+      #------------------------------------------------------------------------
+      # Build and upload the Docker container
+      #------------------------------------------------------------------------
+      - name: Build openedx
+        uses: openedx-actions/tutor-plugin-build-openedx@v1.0.2
