@@ -111,5 +111,5 @@ variable "bastion_iam_arn" {
 
 variable "kms_key_owners" {
   type = list
-  default = []
+  default = ["arn:aws:iam::885156022110:user/OpenEdxDevOps"]
 }

@@ -72,6 +72,7 @@ module "eks" {
   subnet_ids                      = var.private_subnet_ids
   create_cloudwatch_log_group     = false
   enable_irsa                     = true
+  cluster_encryption_config       = {}
 
   # NOTE:
   # larger organizations might want to change these two settings
