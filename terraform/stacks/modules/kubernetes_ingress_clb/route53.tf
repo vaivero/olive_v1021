@@ -46,6 +46,10 @@ resource "aws_route53_record" "admin_naked" {
     zone_id                = data.aws_elb_hosted_zone_id.main.id
     evaluate_target_health = true
   }
+
+  depends_on = [
+    data.kubernetes_service.ingress_nginx_controller
+  ]
 }
 
 resource "aws_route53_record" "admin_wildcard" {
@@ -58,4 +62,8 @@ resource "aws_route53_record" "admin_wildcard" {
     zone_id                = data.aws_elb_hosted_zone_id.main.id
     evaluate_target_health = true
   }
+
+  depends_on = [
+    data.kubernetes_service.ingress_nginx_controller
+  ]
 }

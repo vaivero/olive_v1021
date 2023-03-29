@@ -33,7 +33,8 @@ dependencies {
   paths = [
     "../../../stacks/service/vpc",
     "../../../stacks/service/kubernetes",
-    "../kubernetes"
+    "../kubernetes",
+      "../../../stacks/service/kubernetes_ingress_clb"
     ]
 }
 
